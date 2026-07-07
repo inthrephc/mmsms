@@ -10,10 +10,10 @@ Mini Mart Sales Management System is a DBI202 assignment project about designing
 | `01-requirements/` | Lists business requirements, external entities, and system scope. |
 | `02-erd/` | Contains the ERD explanation and Mermaid ER diagram source. |
 | `03-relational-model/` | Converts the ERD into relational tables and provides the database schema SQL. |
-| `04-data-and-queries/` | Provides sample data and demo queries using SELECT, WHERE, GROUP BY, ORDER BY, JOIN, HAVING, subquery, and LIKE. |
-| `05-stored-procedures/` | Contains one stored procedure demo. |
-| `06-functions/` | Contains one SQL function demo. |
-| `07-triggers/` | Contains one trigger demo for stock and invoice total updates. |
+| `04-data-and-queries/` | Provides sample data and __demo__ queries using SELECT, WHERE, GROUP BY, ORDER BY, JOIN, HAVING, subquery, and LIKE. |
+| `05-stored-procedures/` | Contains one stored procedure __demo__. |
+| `06-functions/` | Contains one SQL function __demo__. |
+| `07-triggers/` | Contains one trigger __demo__ for stock and invoice total updates. |
 
 ## Suggested Execution Order
 
