@@ -1,56 +1,107 @@
-erDiagram
+flowchart LR
 
-    CATEGORY {
-        int category_id PK
-        string category_name
-        string description
-    }
+    %% =========================
+    %% ENTITIES
+    %% =========================
 
-    PRODUCT {
-        int product_id PK
-        string product_name
-        int category_id FK
-        decimal unit_price
-        int stock_quantity
-    }
+    CATEGORY[CATEGORY]
+    PRODUCT[PRODUCT]
+    CUSTOMER[CUSTOMER]
+    EMPLOYEE[EMPLOYEE]
+    INVOICE[INVOICE]
 
-    CUSTOMER {
-        int customer_id PK
-        string full_name
-        string phone
-        string email
-        string address
-    }
+    %% =========================
+    %% RELATIONSHIPS
+    %% =========================
 
-    EMPLOYEE {
-        int employee_id PK
-        string full_name
-        string position
-        string phone
-        string email
-        date hire_date
-    }
+    R_CATEGORY_PRODUCT{BELONGS_TO}
+    R_CUSTOMER_INVOICE{MAKES}
+    R_EMPLOYEE_INVOICE{CREATES}
+    R_INVOICE_PRODUCT{CONTAINS}
 
-    INVOICE {
-        int invoice_id PK
-        int customer_id FK
-        int employee_id FK
-        datetime invoice_datetime
-        int payment_method
-    }
+    %% =========================
+    %% ENTITY ATTRIBUTES
+    %% =========================
 
-    INVOICE_DETAIL {
-        int invoice_id PK, FK
-        int product_id PK, FK
-        int quantity
-        decimal unit_price
-    }
+    category_id([<u>category_id</u>])
+    category_name([category_name])
+    category_description([description])
 
-    CATEGORY ||--o{ PRODUCT : contains
+    product_id([<u>product_id</u>])
+    product_name([product_name])
+    product_unit_price([unit_price])
+    product_stock_quantity([stock_quantity])
 
-    CUSTOMER |o--o{ INVOICE : makes
-    EMPLOYEE ||--o{ INVOICE : creates
+    customer_id([<u>customer_id</u>])
+    customer_full_name([full_name])
+    customer_phone([phone])
+    customer_email([email])
+    customer_address([address])
 
-    INVOICE ||--|{ INVOICE_DETAIL : contains
-    PRODUCT ||--o{ INVOICE_DETAIL : appears_in
-    
+    employee_id([<u>employee_id</u>])
+    employee_full_name([full_name])
+    employee_position([position])
+    employee_phone([phone])
+    employee_email([email])
+    employee_hire_date([hire_date])
+
+    invoice_id([<u>invoice_id</u>])
+    invoice_datetime([invoice_datetime])
+    invoice_payment_method([payment_method])
+
+    %% =========================
+    %% RELATIONSHIP ATTRIBUTES
+    %% These become INVOICE_DETAIL table later
+    %% =========================
+
+    detail_quantity([quantity])
+    detail_unit_price([unit_price])
+
+    %% =========================
+    %% ATTRIBUTE CONNECTIONS
+    %% =========================
+
+    CATEGORY --- category_id
+    CATEGORY --- category_name
+    CATEGORY --- category_description
+
+    PRODUCT --- product_id
+    PRODUCT --- product_name
+    PRODUCT --- product_unit_price
+    PRODUCT --- product_stock_quantity
+
+    CUSTOMER --- customer_id
+    CUSTOMER --- customer_full_name
+    CUSTOMER --- customer_phone
+    CUSTOMER --- customer_email
+    CUSTOMER --- customer_address
+
+    EMPLOYEE --- employee_id
+    EMPLOYEE --- employee_full_name
+    EMPLOYEE --- employee_position
+    EMPLOYEE --- employee_phone
+    EMPLOYEE --- employee_email
+    EMPLOYEE --- employee_hire_date
+
+    INVOICE --- invoice_id
+    INVOICE --- invoice_datetime
+    INVOICE --- invoice_payment_method
+
+    R_INVOICE_PRODUCT --- detail_quantity
+    R_INVOICE_PRODUCT --- detail_unit_price
+
+    %% =========================
+    %% RELATIONSHIP CONNECTIONS
+    %% =========================
+
+    CATEGORY ---|"0..N"| R_CATEGORY_PRODUCT
+    R_CATEGORY_PRODUCT ---|"1"| PRODUCT
+
+    CUSTOMER ---|"0..N"| R_CUSTOMER_INVOICE
+    R_CUSTOMER_INVOICE ---|"0..1"| INVOICE
+
+    EMPLOYEE ---|"0..N"| R_EMPLOYEE_INVOICE
+    R_EMPLOYEE_INVOICE ---|"1"| INVOICE
+
+    INVOICE ---|"1..N"| R_INVOICE_PRODUCT
+    R_INVOICE_PRODUCT ---|"0..N"| PRODUCT
