@@ -1,8 +1,4 @@
-# 00 - Topic Selection
-
-## Topic
-
-Mini Mart Sales Management System.
+# Topic Selection
 
 ## Reason for Choosing This Topic
 
