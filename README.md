@@ -17,7 +17,7 @@ Mini Mart Sales Management System is a DBI202 assignment project about designing
 > | 6 | Create 1 function | Not completed |
 > | 7 | Create 1 trigger | Not completed |
 >
-> Next step to do: Insert sample data and write query demos for Step 4. The script to create the database is stored in [`create_database.sql`](/03-relational-model/create_database.sql)
+> The script to create the database is stored in [`create_database.sql`](/03-relational-model/create_database.sql)
 
 ## Repository Structure
 
