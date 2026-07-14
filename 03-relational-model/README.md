@@ -102,3 +102,12 @@ Trong Chen ERD, bảng này được tạo ra từ relationship `CONTAINS` giữ
 | No `line_total` | It can be calculated as `quantity * unit_price`. |
 | No `total_amount` | It can be calculated by summing all invoice details for one invoice. |
 | `invoice_datetime` | This attribute stores both date and time, which is useful for mini mart sales. |
+| Completed invoice participation | A completed invoice should have at least one detail. This minimum participation is enforced by the sales workflow because the table constraints cannot require a parent invoice to already have a child detail. |
+| Inventory update ownership | The stored procedure validates available stock, while the trigger on `INVOICE_DETAIL` performs the sale-related stock adjustment after an insert or quantity increase. Product restocking remains part of product management. |
+| Assignment concurrency scope | Advanced concurrent transaction handling and multi-user conflict resolution are outside the scope of this introductory assignment. |
+
+## 5. Sample Data Interpretation
+
+The `PRODUCT.stock_quantity` values in the database creation script represent the current stock at the point when the sample database is created. The sample invoices are historical demonstration records, so inserting those seed records does not perform an additional stock deduction.
+
+After the database and inventory trigger have been created, new sales added through the stored procedure will cause the trigger to update the current stock.

@@ -143,6 +143,8 @@ VALUES
     (N'Personal Care', N'Personal hygiene and care products');
 GO
 
+-- The stock quantities below represent current stock at the time the sample database is created.
+-- The historical sample invoices inserted later do not deduct these quantities again.
 INSERT INTO dbo.[PRODUCT] (product_name, category_id, unit_price, stock_quantity)
 VALUES
     (N'Instant Noodles', 1, 4500.00, 120),
@@ -178,6 +180,8 @@ VALUES
     (NULL, 1, '2026-07-04T09:20:00', 1);
 GO
 
+-- These are historical demonstration details. Inventory updates for new sales are handled
+-- by the inventory trigger after the trigger is installed.
 INSERT INTO dbo.INVOICE_DETAIL (invoice_id, product_id, quantity, unit_price)
 VALUES
     (1, 1, 5, 4500.00),

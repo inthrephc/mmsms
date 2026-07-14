@@ -14,7 +14,7 @@ flowchart LR
     %% RELATIONSHIPS
     %% =========================
 
-    R_CATEGORY_PRODUCT{HAS}
+    R_CATEGORY_PRODUCT{BELONGS_TO}
     R_CUSTOMER_INVOICE{MAKES}
     R_EMPLOYEE_INVOICE{CREATES}
     R_INVOICE_PRODUCT{CONTAINS}
@@ -106,15 +106,14 @@ flowchart LR
     %% CORRECTED RELATIONSHIP CARDINALITIES
     %% =========================
 
-    CATEGORY ---|"1"| R_CATEGORY_PRODUCT
-    R_CATEGORY_PRODUCT ---|"0..N"| PRODUCT
+    CATEGORY ---|"1 category per product"| R_CATEGORY_PRODUCT
+    R_CATEGORY_PRODUCT ---|"0..N products per category"| PRODUCT
 
-    CUSTOMER ---|"0..1"| R_CUSTOMER_INVOICE
-    R_CUSTOMER_INVOICE ---|"0..N"| INVOICE
+    CUSTOMER ---|"0..1 customer per invoice"| R_CUSTOMER_INVOICE
+    R_CUSTOMER_INVOICE ---|"0..N invoices per customer"| INVOICE
 
-    EMPLOYEE ---|"1"| R_EMPLOYEE_INVOICE
-    R_EMPLOYEE_INVOICE ---|"0..N"| INVOICE
+    EMPLOYEE ---|"1 employee per invoice"| R_EMPLOYEE_INVOICE
+    R_EMPLOYEE_INVOICE ---|"0..N invoices per employee"| INVOICE
 
-    INVOICE ---|"0..N"| R_INVOICE_PRODUCT
-    R_INVOICE_PRODUCT ---|"1..N"| PRODUCT
-    
+    INVOICE ---|"0..N invoices per product"| R_INVOICE_PRODUCT
+    R_INVOICE_PRODUCT ---|"1..N products per completed invoice"| PRODUCT
