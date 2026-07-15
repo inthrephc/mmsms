@@ -1,4 +1,4 @@
-CREATE PROCEDURE dbo.sp_AddInvoiceDetail
+CREATE OR ALTER PROCEDURE dbo.sp_AddInvoiceDetail
     @invoice_id INT,
     @product_id INT,
     @quantity INT
@@ -11,7 +11,7 @@ BEGIN
     DECLARE @unit_price DECIMAL(10,2);
 
     -- 1. Validate quantity
-    IF @quantity <= 0
+    IF @quantity <= 0 OR @quantity IS NULL
     BEGIN
         RAISERROR(N'Quantity must be greater than 0.', 16, 1);
         RETURN;
@@ -42,9 +42,10 @@ BEGIN
         RETURN;
     END
 
-    -- Begin transaction
-    BEGIN TRANSACTION;
     BEGIN TRY
+        -- Begin transaction
+        BEGIN TRANSACTION;
+        
         -- 5. Insert or update invoice detail
         IF EXISTS (SELECT 1 FROM dbo.INVOICE_DETAIL WHERE invoice_id = @invoice_id AND product_id = @product_id)
         BEGIN
@@ -58,16 +59,12 @@ BEGIN
             VALUES (@invoice_id, @product_id, @quantity, @unit_price);
         END
 
-        -- 6. Deduct stock quantity
-        UPDATE dbo.[PRODUCT]
-        SET stock_quantity = stock_quantity - @quantity
-        WHERE product_id = @product_id;
-
         COMMIT TRANSACTION;
-        PRINT N'Invoice detail added and stock updated successfully!';
+        PRINT N'Invoice detail added successfully!';
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
         DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
         RAISERROR(@ErrorMessage, 16, 1);
     END CATCH
