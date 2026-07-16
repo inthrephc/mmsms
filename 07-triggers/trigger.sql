@@ -1,45 +1,36 @@
 /* ============================================================
-   TRIGGER: trg_UpdateStock_AfterInsertInvoiceDetail
-   Mục đích:
-     - Ứng với BR21: "Khi một invoice detail được insert,
-       stock_quantity của product tương ứng phải giảm"
-     - Ứng với dòng "Giảm tồn kho sau khi bán" trong bảng
-       SQL Implementation Notes -> dùng trigger AFTER INSERT
-       trên bảng INVOICE_DETAIL
-
-   Lưu ý:
-     - Trigger xử lý được cả trường hợp insert nhiều dòng
-       cùng lúc (bulk insert) bằng cách GROUP BY product_id
-       trên bảng ảo "inserted", tránh sai sót khi 1 invoice
-       có nhiều invoice detail được insert trong 1 câu lệnh.
-     - Nếu update khiến stock_quantity < 0, ràng buộc
-       CHECK (stock_quantity >= 0) (BR20) trên bảng PRODUCT
-       sẽ tự động rollback toàn bộ transaction (bao gồm cả
-       insert vào INVOICE_DETAIL), đảm bảo tồn kho không
-       bao giờ âm.
+   Trigger: giảm/điều chỉnh stock_quantity của PRODUCT khi INVOICE_DETAIL
+   được insert hoặc update (BR13, BR21).
+   Dùng delta = inserted.quantity - deleted.quantity (không dùng nguyên
+   inserted.quantity) để tính đúng cho cả INSERT lẫn UPDATE quantity.
+   Không xử lý DELETE (ngoài phạm vi đề bài).
+   BR20 (stock_quantity >= 0) đã có CHECK constraint trên PRODUCT lo.
    ============================================================ */
 
-CREATE TRIGGER trg_UpdateStock_AfterInsertInvoiceDetail
-ON INVOICE_DETAIL
-AFTER INSERT
+CREATE OR ALTER TRIGGER dbo.trg_AdjustStock_AfterInvoiceDetailChange
+ON dbo.INVOICE_DETAIL
+AFTER INSERT, UPDATE
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
-    -- Gom số lượng bán theo từng sản phẩm
-    -- (phòng trường hợp 1 câu lệnh insert nhiều dòng cho cùng 1 product_id)
-    ;WITH SoldQty AS (
+    ;WITH Delta AS (
         SELECT
-            product_id,
-            SUM(quantity) AS total_qty
-        FROM inserted
-        GROUP BY product_id
+            COALESCE(i.product_id, d.product_id) AS product_id,
+            SUM(ISNULL(i.quantity, 0)) - SUM(ISNULL(d.quantity, 0)) AS qty_delta
+        FROM inserted i
+        FULL OUTER JOIN deleted d
+            ON i.invoice_id = d.invoice_id
+           AND i.product_id = d.product_id
+        GROUP BY COALESCE(i.product_id, d.product_id)
     )
 
     UPDATE p
-    SET p.stock_quantity = p.stock_quantity - s.total_qty
-    FROM PRODUCT p
-    INNER JOIN SoldQty s
-        ON p.product_id = s.product_id;
+    SET p.stock_quantity = p.stock_quantity - dl.qty_delta
+    FROM dbo.[PRODUCT] p
+    INNER JOIN Delta dl
+        ON p.product_id = dl.product_id
+    WHERE dl.qty_delta <> 0;
 END;
 GO
