@@ -1,32 +1,29 @@
-# sp_AddInvoiceDetail
+# Stored Procedure
 
-## Overview
-The `dbo.sp_AddInvoiceDetail` Stored Procedure is used to add a product to an invoice detail. It ensures data integrity by verifying stock availability before proceeding and automatically accumulating the quantity if the product already exists in the given invoice.
+## 1. Objective
 
-## Parameters
+This directory is used to store a mandatory stored procedure for the assignment.
 
-| Parameter | Data Type | Required | Description |
-| :--- | :--- | :--- | :--- |
-| `@invoice_id` | `INT` | Yes | The ID of the target invoice. |
-| `@product_id` | `INT` | Yes | The ID of the selected product. |
-| `@quantity` | `INT` | Yes | The quantity to be added (must be > 0). |
+This stored procedure demonstrates the business operation of **adding invoice details** for the Mini Mart Sales Management System.
 
-## Business Logic
+## 2. Procedure Details
 
-The procedure executes the following validation and processing steps sequentially:
-1. **Input Validation:** Ensures the `@quantity` parameter is strictly greater than 0.
-2. **Invoice Validation:** Checks whether the `@invoice_id` exists in the `INVOICE` table.
-3. **Product & Stock Validation:** Retrieves the current `stock_quantity` and `unit_price` from the `PRODUCT` table. Raises an error if the product does not exist or if the stock is insufficient to fulfill the `@quantity`.
-4. **Insert / Update (Within a Transaction):**
-   - If the product already exists in the invoice (`INVOICE_DETAIL` table), it **updates** the record by adding the new quantity to the existing one.
-   - If the product does not exist in the invoice, it **inserts** a new record into `INVOICE_DETAIL` using the current unit price.
-5. **Error Handling:** If any error occurs during the transaction, the procedure automatically executes a `ROLLBACK` to prevent data inconsistency and raises the error message.
+| Item | Description |
+| -------- | ----- |
+| Procedure Name | `dbo.sp_AddInvoiceDetail` |
+| SQL File | `sp_AddInvoiceDetail.sql` |
+| Business Logic | Adds a product to the invoice details. Ensures data integrity by checking stock availability and automatically accumulating the quantity if the product already exists in the invoice. |
+| Input Parameters | - `@invoice_id` (`INT`): Invoice ID, `NULL` is not allowed.<br>- `@product_id` (`INT`): Product ID, `NULL` is not allowed.<br>- `@quantity` (`INT`): Quantity to purchase, `NULL` is not allowed (must be > 0). |
+| Output Parameters | None. |
+| Affected Tables | - **Read:** `INVOICE`, `PRODUCT`.<br>- **Insert/Update:** `INVOICE_DETAIL`. |
+| Data Validation | Validates: quantity validity (> 0), invoice existence, product existence, and sufficient stock availability. |
+| Expected Result | Data is inserted or updated in the `INVOICE_DETAIL` table. If any condition is violated, the system will execute a `ROLLBACK` and raise an error. |
 
-## Usage Example
+## 3. Execution Example
 
 ```sql
--- Example: Add 2 units of product (ID = 10) to invoice (ID = 1)
-EXEC dbo.sp_AddInvoiceDetail 
-    @invoice_id = 1, 
-    @product_id = 10, 
-    @quantity = 2;
+EXEC dbo.sp_AddInvoiceDetail
+    @invoice_id = 1,
+    @product_id = 8,
+    @quantity = 1
+```
