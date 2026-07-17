@@ -1,42 +1,32 @@
-# Stored Procedure
+# sp_AddInvoiceDetail
 
-## 1. Mục đích
+## Overview
+The `dbo.sp_AddInvoiceDetail` Stored Procedure is used to add a product to an invoice detail. It ensures data integrity by verifying stock availability before proceeding and automatically accumulating the quantity if the product already exists in the given invoice.
 
-Thư mục này dùng để lưu một stored procedure bắt buộc của bài assignment.
+## Parameters
 
-Stored procedure nên thể hiện một thao tác nghiệp vụ thật của hệ thống Mini Mart Sales Management System, ví dụ tạo hóa đơn, thêm chi tiết hóa đơn, cập nhật thông tin sản phẩm hoặc thống kê dữ liệu theo tham số.
+| Parameter | Data Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `@invoice_id` | `INT` | Yes | The ID of the target invoice. |
+| `@product_id` | `INT` | Yes | The ID of the selected product. |
+| `@quantity` | `INT` | Yes | The quantity to be added (must be > 0). |
 
-## 2. Nội dung procedure cần mô tả
+## Business Logic
 
-Sau khi viết procedure, README cần ghi rõ:
+The procedure executes the following validation and processing steps sequentially:
+1. **Input Validation:** Ensures the `@quantity` parameter is strictly greater than 0.
+2. **Invoice Validation:** Checks whether the `@invoice_id` exists in the `INVOICE` table.
+3. **Product & Stock Validation:** Retrieves the current `stock_quantity` and `unit_price` from the `PRODUCT` table. Raises an error if the product does not exist or if the stock is insufficient to fulfill the `@quantity`.
+4. **Insert / Update (Within a Transaction):**
+   - If the product already exists in the invoice (`INVOICE_DETAIL` table), it **updates** the record by adding the new quantity to the existing one.
+   - If the product does not exist in the invoice, it **inserts** a new record into `INVOICE_DETAIL` using the current unit price.
+5. **Error Handling:** If any error occurs during the transaction, the procedure automatically executes a `ROLLBACK` to prevent data inconsistency and raises the error message.
 
-| Mục cần ghi | Nội dung cần mô tả |
-| ----------- | ------------------ |
-| Tên procedure | Tên chính xác trong SQL. |
-| Mục đích | Procedure giải quyết nghiệp vụ gì. |
-| Tham số đầu vào | Tên tham số, kiểu dữ liệu, ý nghĩa, có cho phép `NULL` không. |
-| Tham số đầu ra | Nếu có output parameter, cần giải thích ý nghĩa. |
-| Bảng bị ảnh hưởng | Procedure đọc hoặc thay đổi những bảng nào. |
-| Kiểm tra dữ liệu | Procedure có kiểm tra tồn tại sản phẩm, tồn kho, customer, employee hoặc invoice không. |
-| Kết quả mong đợi | Procedure thêm/sửa/xóa/trả về dữ liệu gì sau khi chạy. |
-
-## 3. Ví dụ phần mô tả cần hoàn thiện
-
-Khi làm xong, thay phần này bằng thông tin thật:
-
-| Nội dung | Mô tả |
-| -------- | ----- |
-| Tên procedure | `[Điền tên procedure]` |
-| File SQL | `[Điền tên file SQL]` |
-| Nghiệp vụ | `[Procedure dùng để làm gì]` |
-| Tham số | `[Liệt kê các tham số]` |
-| Cách chạy | `[Viết ví dụ EXEC procedure]` |
-| Kết quả | `[Mô tả kết quả sau khi chạy]` |
-
-Ví dụ cách trình bày lệnh chạy:
+## Usage Example
 
 ```sql
-EXEC sp_ProcedureName
-    @param1 = value1,
-    @param2 = value2;
-```
+-- Example: Add 2 units of product (ID = 10) to invoice (ID = 1)
+EXEC dbo.sp_AddInvoiceDetail 
+    @invoice_id = 1, 
+    @product_id = 10, 
+    @quantity = 2;
