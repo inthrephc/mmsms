@@ -1,4 +1,4 @@
-# Trigger Demo
+# Trigger
 
 Thư mục `demo/` chứa các kịch bản kiểm thử trigger điều chỉnh tồn kho khi dữ liệu trong `INVOICE_DETAIL` được thêm mới hoặc cập nhật.
 
@@ -101,6 +101,7 @@ stock_quantity = stock_quantity - (-5)
 
 Tức là hoàn lại `5` sản phẩm vào kho.
 
+**Note: Cụ thể về cách ứng dụng từng câu lệnh ở trigger sẽ nằm ở file 'trigger-explanation'**
 ## 6. Nội dung các file demo
 
 ### `test01_INSERT.sql`
