@@ -1,48 +1,168 @@
 # Trigger
 
-## 1. Mục đích
+Thư mục `demo/` chứa các kịch bản kiểm thử trigger điều chỉnh tồn kho khi dữ liệu trong `INVOICE_DETAIL` được thêm mới hoặc cập nhật.
 
-Thư mục này dùng để lưu một trigger bắt buộc của bài assignment.
+## 1. Cấu trúc thư mục
 
-Trigger nên thể hiện một business rule tự động của hệ thống Mini Mart Sales Management System, đặc biệt là các rule cần chạy ngay khi dữ liệu trong bảng thay đổi.
+```text
+07-triggers/
+├── demo/
+│   ├── test01_INSERT.sql
+│   ├── test02_INCREASEQuantity.sql
+│   └── test03_DECREASEQuantity.sql
+├── trigger.sql
+└── README.md
+```
 
-## 4. Nội dung trigger cần mô tả
+## 2. Thứ tự thực thi
 
-Sau khi viết trigger, README cần ghi rõ:
+1. Chạy script tạo cơ sở dữ liệu và dữ liệu mẫu.
+2. Chạy file `trigger.sql`.
+3. Chạy các file demo theo thứ tự:
 
-| Mục cần ghi | Nội dung cần mô tả |
-| ----------- | ------------------ |
-| Tên trigger | Tên chính xác trong SQL. |
-| Bảng áp dụng | Trigger được tạo trên bảng nào. |
-| Thời điểm chạy | `AFTER INSERT`, `AFTER UPDATE`, `INSTEAD OF DELETE`, hoặc loại trigger khác. |
-| Business rule | Quy tắc nghiệp vụ trigger đảm bảo. |
-| Bảng bị ảnh hưởng | Trigger đọc hoặc cập nhật những bảng nào. |
-| Xử lý lỗi | Nếu dữ liệu không hợp lệ thì trigger báo lỗi hoặc rollback như thế nào. |
-| Cách kiểm tra | Các bước chạy SQL để chứng minh trigger hoạt động đúng. |
+```text
+test01_INSERT.sql
+test02_INCREASEQuantity.sql
+test03_DECREASEQuantity.sql
+```
 
-## 5. Demo cần có trong SQL
+Các test sau sử dụng dữ liệu được tạo hoặc cập nhật từ test trước, vì vậy không nên thay đổi thứ tự chạy.
 
-File `trigger.sql` nên có phần demo gồm:
+## 3. Mục tiêu
 
-1. Xem dữ liệu trước khi trigger chạy.
-2. Thực hiện lệnh `INSERT`, `UPDATE` hoặc `DELETE` làm trigger được kích hoạt.
-3. Xem dữ liệu sau khi trigger chạy.
-4. Nếu có kiểm tra lỗi, thêm một trường hợp dữ liệu sai để chứng minh trigger chặn được.
+Trigger tự động điều chỉnh số lượng tồn kho của sản phẩm khi:
 
-Ví dụ cách trình bày demo:
+- Thêm sản phẩm vào chi tiết hóa đơn.
+- Tăng số lượng sản phẩm trong chi tiết hóa đơn.
+- Giảm số lượng sản phẩm trong chi tiết hóa đơn.
+
+Trigger không xử lý thao tác `DELETE`.
+
+## 4. Thông tin trigger
+
+| Mục | Nội dung |
+|---|---|
+| Tên trigger | `dbo.trg_AdjustStock_AfterInvoiceDetailChange` |
+| Bảng áp dụng | `dbo.INVOICE_DETAIL` |
+| Thời điểm chạy | `AFTER INSERT, UPDATE` |
+| Business rule | Khi thêm mới hoặc thay đổi số lượng sản phẩm trong chi tiết hóa đơn, tồn kho của sản phẩm phải được điều chỉnh tương ứng. Trigger sử dụng phần chênh lệch `delta = inserted.quantity - deleted.quantity` để xử lý đúng cho cả `INSERT` và `UPDATE`. |
+| Bảng bị ảnh hưởng | Đọc dữ liệu từ `inserted`, `deleted`; cập nhật cột `stock_quantity` của bảng `dbo.PRODUCT`. |
+| Xử lý lỗi | Trigger không tự dùng `THROW`. Nếu tồn kho sau cập nhật nhỏ hơn `0`, CHECK constraint `CK_PRODUCT_STOCK_QUANTITY` sẽ chặn câu lệnh và rollback toàn bộ thao tác. |
+| Cách kiểm tra | Chạy lần lượt ba file trong thư mục `demo`, sau đó so sánh dữ liệu trước và sau trong `INVOICE_DETAIL` và `PRODUCT`. |
+
+## 5. Logic xử lý
+
+Trigger tính phần chênh lệch số lượng:
+
+```text
+qty_delta = inserted.quantity - deleted.quantity
+```
+
+### INSERT
+
+Khi thêm mới một dòng:
+
+```text
+deleted.quantity = 0
+qty_delta = inserted.quantity
+```
+
+Tồn kho được cập nhật:
+
+```text
+stock_quantity = stock_quantity - inserted.quantity
+```
+
+### UPDATE tăng quantity
+
+Ví dụ:
+
+```text
+quantity: 5 → 8
+qty_delta = 8 - 5 = 3
+```
+
+Trigger chỉ trừ thêm `3` sản phẩm khỏi kho.
+
+### UPDATE giảm quantity
+
+Ví dụ:
+
+```text
+quantity: 8 → 3
+qty_delta = 3 - 8 = -5
+```
+
+Tồn kho được cập nhật:
+
+```text
+stock_quantity = stock_quantity - (-5)
+```
+
+Tức là hoàn lại `5` sản phẩm vào kho.
+
+**Note: Cụ thể về cách ứng dụng từng câu lệnh ở trigger sẽ nằm ở file 'trigger-explanation'**
+## 6. Nội dung các file demo
+
+### `test01_INSERT.sql`
+
+Mục tiêu:
+
+- Tạo hóa đơn mới.
+- Thêm một dòng vào `INVOICE_DETAIL`.
+- Kiểm tra tồn kho giảm đúng bằng số lượng bán.
+
+Kết quả mong đợi:
+
+```text
+stock sau = stock trước - quantity
+```
+
+### `test02_INCREASEQuantity.sql`
+
+Mục tiêu:
+
+- Tăng `quantity` của một dòng chi tiết hóa đơn.
+- Kiểm tra trigger chỉ trừ phần chênh lệch.
+
+Kết quả mong đợi:
+
+```text
+stock sau = stock trước - (quantity mới - quantity cũ)
+```
+
+### `test03_DECREASEQuantity.sql`
+
+Mục tiêu:
+
+- Giảm `quantity` của một dòng chi tiết hóa đơn.
+- Kiểm tra trigger hoàn lại phần số lượng đã giảm vào kho.
+
+Kết quả mong đợi:
+
+```text
+stock sau = stock trước + (quantity cũ - quantity mới)
+```
+
+## 7. Xử lý dữ liệu không hợp lệ
+
+Bảng `PRODUCT` có CHECK constraint:
 
 ```sql
--- 1. Check stock before insert
-SELECT product_id, product_name, stock_quantity
-FROM PRODUCT
-WHERE product_id = 1;
-
--- 2. Insert invoice detail to activate trigger
-INSERT INTO INVOICE_DETAIL (invoice_id, product_id, quantity, unit_price)
-VALUES (1, 1, 2, 10000);
-
--- 3. Check stock after insert
-SELECT product_id, product_name, stock_quantity
-FROM PRODUCT
-WHERE product_id = 1;
+CHECK (stock_quantity >= 0)
 ```
+
+Nếu một thao tác làm tồn kho âm, SQL Server sẽ báo lỗi:
+
+```text
+The UPDATE statement conflicted with the CHECK constraint
+"CK_PRODUCT_STOCK_QUANTITY".
+```
+
+Khi đó:
+
+- Câu `INSERT` hoặc `UPDATE` trên `INVOICE_DETAIL` bị hủy.
+- Thay đổi trên `PRODUCT` bị hủy.
+- Dữ liệu giữ nguyên như trước khi thực hiện câu lệnh.
+
+Nếu một câu lệnh cập nhật nhiều dòng và chỉ có một dòng làm tồn kho âm, toàn bộ câu lệnh vẫn bị rollback.
