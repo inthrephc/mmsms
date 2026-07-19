@@ -16,8 +16,6 @@ Mini Mart Sales Management System is a DBI202 assignment project about designing
 > | 5 | Create 1 stored procedure | Nguyen Bao Toan |
 > | 6 | Create 1 function | Bui Chi Bao |
 > | 7 | Create 1 trigger | Nguyen Duy Khanh |
->
-> The script to create the database is stored in [`create_database.sql`](/03-relational-model/create_database.sql)
 
 ## Repository Structure
 
