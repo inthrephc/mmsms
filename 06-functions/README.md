@@ -1,49 +1,41 @@
-# Function
+# Function — `fn_TotalStock`
 
 ## 1. Mục đích
 
-Thư mục này dùng để lưu một SQL function bắt buộc của bài assignment.
+`fn_TotalStock` tính tổng số lượng tồn kho hiện tại của tất cả product trong hệ thống. Function này có thể được dùng trong báo cáo tổng quan kho hoặc dashboard quản lý.
 
-Function nên dùng để tính toán hoặc trả về một giá trị có thể tái sử dụng trong nhiều câu truy vấn, ví dụ tính tổng tiền hóa đơn, tính doanh thu theo ngày hoặc lấy số lượng sản phẩm đã bán.
-
-## 2. Nội dung function cần mô tả
-
-Sau khi viết function, README cần ghi rõ:
-
-| Mục cần ghi | Nội dung cần mô tả |
-| ----------- | ------------------ |
-| Tên function | Tên chính xác trong SQL. |
-| Mục đích | Function tính toán hoặc trả về thông tin gì. |
-| Tham số đầu vào | Tên tham số, kiểu dữ liệu và ý nghĩa. |
-| Kiểu dữ liệu trả về | Function trả về `INT`, `DECIMAL`, `TABLE` hoặc kiểu dữ liệu nào. |
-| Công thức xử lý | Nếu là tính toán, cần ghi công thức hoặc logic chính. |
-| Bảng được sử dụng | Function đọc dữ liệu từ những bảng nào. |
-| Cách sử dụng | Ví dụ gọi function trong câu `SELECT`. |
-
-## 3. Ví dụ phần mô tả cần hoàn thiện
-
-Khi làm xong, thay phần này bằng thông tin thật:
+## 2. Thông tin function
 
 | Nội dung | Mô tả |
-| -------- | ----- |
-| Tên function | `[Điền tên function]` |
-| File SQL | `[Điền tên file SQL]` |
-| Mục đích | `[Function dùng để tính hoặc lấy thông tin gì]` |
-| Tham số | `[Liệt kê các tham số]` |
-| Giá trị trả về | `[Kiểu dữ liệu và ý nghĩa giá trị trả về]` |
-| Cách chạy | `[Viết ví dụ SELECT gọi function]` |
+| --- | --- |
+| Tên function | `dbo.fn_TotalStock` |
+| File SQL | `fn_TotalStock.sql` |
+| Tham số đầu vào | Không có |
+| Kiểu trả về | `INT` |
+| Giá trị trả về | Tổng của `PRODUCT.stock_quantity`; trả về `0` nếu bảng `PRODUCT` chưa có dữ liệu |
+| Bảng sử dụng | `PRODUCT` |
+| Công thức | `SUM(stock_quantity)` |
+| Tác động dữ liệu | Chỉ đọc dữ liệu, không insert, update hoặc delete |
 
-Ví dụ cách trình bày lệnh chạy:
+## 3. Cách chạy
+
+1. Chạy `03-relational-model/create_database.sql` để tạo database và bảng `PRODUCT`.
+2. Chạy `fn_TotalStock.sql` để tạo function.
+3. Gọi function bằng câu lệnh sau:
 
 ```sql
-SELECT dbo.fn_FunctionName(@param1);
+SELECT dbo.fn_TotalStock() AS total_stock_quantity;
 ```
 
-Hoặc dùng trong truy vấn:
+Với dữ liệu mẫu mặc định của Step 3, kết quả mong đợi là `660`.
+
+## 4. Ví dụ sử dụng trong báo cáo
 
 ```sql
 SELECT
-    invoice_id,
-    dbo.fn_FunctionName(invoice_id) AS calculated_value
-FROM INVOICE;
+    dbo.fn_TotalStock() AS total_stock_quantity,
+    COUNT(*) AS product_count
+FROM dbo.[PRODUCT];
 ```
+
+Function luôn phản ánh `stock_quantity` hiện tại. Nếu trigger hoặc stored procedure điều chỉnh tồn kho sau một giao dịch bán hàng, kết quả của function cũng thay đổi tương ứng.
