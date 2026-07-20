@@ -9,4 +9,3 @@ BEGIN
 
     RETURN ISNULL(@TotalStock, 0);
 END;
-GO
