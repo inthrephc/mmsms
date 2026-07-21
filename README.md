@@ -14,7 +14,7 @@ Mini Mart Sales Management System is a DBI202 assignment project about designing
 > | 3 | Convert ERD to relational database model | Nguyen Sy Nguyen |
 > | 4 | Insert data and illustrate required queries | Nguyen Khoa Diem, Nguyen Sy Nguyen |
 > | 5 | Create 1 stored procedure | Nguyen Bao Toan |
-> | 6 | Create 1 function | Bui Chi Bao, Nguyen Sy Nguyen |
+> | 6 | Create 1 function | Bui Chi Bao |
 > | 7 | Create 1 trigger | Nguyen Duy Khanh |
 
 ## Repository Structure
